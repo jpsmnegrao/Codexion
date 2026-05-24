@@ -1,10 +1,10 @@
 NAME = codexion
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -pthread
 RM = rm -rf
 
-SOURCES = 
+SOURCES = codexion.c
 
 OBJS = $(SOURCES:.c=.o)
 
@@ -23,6 +23,10 @@ fclean: clean
 	$(RM) $(NAME)
 
 re: fclean all
+
+lint:
+	norminette
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
 
 .PHONY:
 	all clean fclean re
