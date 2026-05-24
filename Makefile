@@ -4,7 +4,7 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -pthread
 RM = rm -rf
 
-SOURCES = codexion.c
+SOURCES = codexion.c parser.c setup.c
 
 OBJS = $(SOURCES:.c=.o)
 

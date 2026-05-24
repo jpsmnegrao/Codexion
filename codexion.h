@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/24 18:37:57 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/24 23:56:52 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,9 @@
 # include <pthread.h>
 # include <limits.h>
 # include <string.h>
+# include <sys/time.h>
 
+typedef struct s_coder	t_coder;
 
 typedef struct s_dongle
 {
@@ -41,6 +43,7 @@ typedef struct s_sim
 	int				stop;
 	pthread_mutex_t	output_lock;
 	pthread_mutex_t	state_lock;
+	t_coder			*coders;
 	t_dongle		*dongles;
 }	t_sim;
 
@@ -54,5 +57,9 @@ typedef struct s_coder
 	t_dongle		*right;
 	t_sim			*sim;
 }	t_coder;
+
+// PARSING AND INITIALIZATION
+
+int	parse_input(t_sim *sim, int argc, char *argv[]);
 
 #endif
