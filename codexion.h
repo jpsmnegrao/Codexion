@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/24 23:56:52 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/25 12:57:51 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,8 @@ typedef struct s_coder
 
 // PARSING AND INITIALIZATION
 
-int	parse_input(t_sim *sim, int argc, char *argv[]);
+int		parse_input(t_sim *sim, int argc, char *argv[]);
+int		setup_simulation(t_sim *sim);
+void	destroy_simulation(t_sim *sim, int count);
 
 #endif
