@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 22:09:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/25 00:15:26 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/25 13:38:49 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ void	destroy_simulation(t_sim *sim, int count)
 	free(sim->coders);
 }
 
-int	init_mutexes(t_sim *sim)
+static int	init_mutexes(t_sim *sim)
 {
 	int	i;
 
@@ -58,7 +58,7 @@ int	init_mutexes(t_sim *sim)
 	return (0);
 }
 
-void	init_coders(t_sim *sim)
+static void	init_coders(t_sim *sim)
 {
 	int	i;
 
