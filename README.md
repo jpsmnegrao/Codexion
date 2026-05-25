@@ -1,3 +1,39 @@
+*This project has been created as part of the 42 curriculum by jpaim-so*
+
+# Codexion
+
+## Description
+
+MAMBO JAMBO
+
+## Instructions
+
+`./codexion number_of_coders time_to_burnout time_to_compile time_to_debug time_to_refactor number_of_compiles_required dongle_cooldown scheduler`
+
+number_of_coders — number of coders (and dongles) in the simulation.
+time_to_burnout — ms a coder can go since its last compile (or sim start) before burning out.
+time_to_compile — ms a coder spends compiling (holding two dongles).
+time_to_debug — ms a coder spends debugging.
+time_to_refactor — ms a coder spends refactoring.
+number_of_compiles_required — if every coder compiles at least this many times, the sim stops; omit-equivalent stop is a burnout.
+dongle_cooldown — ms a dongle stays unavailable after being released.
+scheduler — dongle arbitration policy: fifo or edf.
+
+All arguments are mandatory; times are in milliseconds.
+Example:
+`./codexion 5 800 200 100 100 5 50 fifo`
+
+## Resources
+
+### References
+
+
+## Additional Sections:
+
+### Blocking cases handled
+
+### Thread synchronization mechanisms
+
 Readme Requirements
 
 A README.md file must be provided at the root of your Git repository. Its purpose is
