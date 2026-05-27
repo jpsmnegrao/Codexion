@@ -17,9 +17,8 @@ MAMBO JAMBO
 - time_to_compile — ms a coder spends compiling (holding two dongles)
 - time_to_debug — ms a coder spends debugging
 - time_to_refactor — ms a coder spends refactoring
-- number_of_compiles_required — if every coder has compiled at least this many
-  times, the simulation stops. Otherwise, the simulation runs until a coder
-  burns out
+- number_of_compiles_required — number of compiles each coder must reach to
+  stop the simulation. Otherwise, the simulation runs until a coder burns out
 - dongle_cooldown — ms a dongle stays unavailable after being released
 - scheduler — dongle arbitration policy: fifo or edf
 

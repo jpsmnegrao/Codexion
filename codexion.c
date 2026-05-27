@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:57 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/25 12:58:54 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/27 21:59:07 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ int	main(int argc, char *argv[])
 		sim.number_of_coders, sim.time_to_burnout, sim.time_to_compile,
 		sim.time_to_debug, sim.time_to_refactor,
 		sim.number_of_compiles_required, sim.dongle_cooldown, sim.scheduler);
+	if (run_sim(&sim) != 0)
+		return (destroy_simulation(&sim, sim.number_of_coders), 1);
 	destroy_simulation(&sim, sim.number_of_coders);
 	return (0);
 }
