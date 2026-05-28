@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 22:09:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/28 19:33:03 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/28 20:42:56 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,8 @@ static void	init_coders(t_sim *sim)
 		sim->coders[i].left = &sim->dongles[i];
 		sim->coders[i].right = &sim->dongles[(i + 1) % sim->number_of_coders];
 		sim->coders[i].last_compile_start = sim->sim_start_time;
+		sim->coders[i].request_time = 0;
+		sim->coders[i].is_waiting = 0;
 		sim->dongles[i].status = 0;
 		sim->dongles[i].release_time = 0;
 		i++;

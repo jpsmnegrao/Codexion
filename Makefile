@@ -27,7 +27,8 @@ re: fclean all
 
 lint:
 	norminette
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME) 2 800 200 100 100 5 50 fifo 
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME) 2 800 200 100 100 5 50 fifo
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME) 5 100 100 100 100 10 50 edf
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
 
 .PHONY: all clean fclean re lint

@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/28 20:20:51 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/28 21:43:21 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ typedef struct s_coder
 	int				id;
 	int				times_compiled;
 	long long		last_compile_start;
+	long long		request_time;
+	int				is_waiting;
 	t_dongle		*left;
 	t_dongle		*right;
 	t_sim			*sim;
@@ -73,5 +75,7 @@ void		*coder_routine(void *arg);
 void		log_state(t_coder *coder, const char *state);
 void		acquire_dongles(t_coder *coder);
 void		release_dongles(t_coder *coder);
+int			dongles_available(t_coder *coder);
+int			can_proceed(t_coder *coder);
 
 #endif
