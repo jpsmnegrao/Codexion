@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/28 19:35:29 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/28 20:20:51 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,5 +71,7 @@ void		destroy_simulation(t_sim *sim);
 int			run_sim(t_sim *sim);
 void		*coder_routine(void *arg);
 void		log_state(t_coder *coder, const char *state);
+void		acquire_dongles(t_coder *coder);
+void		release_dongles(t_coder *coder);
 
 #endif
