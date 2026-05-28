@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/28 21:43:21 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/28 23:39:44 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,5 +77,9 @@ void		acquire_dongles(t_coder *coder);
 void		release_dongles(t_coder *coder);
 int			dongles_available(t_coder *coder);
 int			can_proceed(t_coder *coder);
+
+// MONITORING
+
+void		*monitor_routine(void *arg);
 
 #endif

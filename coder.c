@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 21:50:02 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/28 20:26:34 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/28 23:45:00 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ void	*coder_routine(void *arg)
 	t_coder	*coder;
 
 	coder = (t_coder *)arg;
-	while (!is_stopped(coder) && coder->times_compiled < 3)
+	while (!is_stopped(coder))
 	{
 		compile(coder);
 		if (is_stopped(coder) == 0)
