@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 22:09:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/25 13:38:49 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/28 19:33:03 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,41 +20,25 @@ long long	get_time_ms(void)
 	return ((long long)tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
-void	destroy_simulation(t_sim *sim, int count)
+void	destroy_simulation(t_sim *sim)
 {
-	int	i;
-
-	i = 0;
-	while (i < count)
-	{
-		pthread_mutex_destroy(&sim->dongles[i].lock);
-		pthread_cond_destroy(&sim->dongles[i].condition);
-		i++;
-	}
 	pthread_mutex_destroy(&sim->output_lock);
 	pthread_mutex_destroy(&sim->state_lock);
+	pthread_cond_destroy(&sim->condition);
 	free(sim->dongles);
 	free(sim->coders);
 }
 
 static int	init_mutexes(t_sim *sim)
 {
-	int	i;
-
 	if (pthread_mutex_init(&sim->output_lock, NULL) != 0)
 		return (1);
 	if (pthread_mutex_init(&sim->state_lock, NULL) != 0)
 		return (pthread_mutex_destroy(&sim->output_lock), 1);
-	i = 0;
-	while (i < sim->number_of_coders)
-	{
-		if (pthread_mutex_init(&sim->dongles[i].lock, NULL) != 0)
-			return (destroy_simulation(sim, i), 1);
-		if (pthread_cond_init(&sim->dongles[i].condition, NULL) != 0)
-			return (pthread_mutex_destroy(&sim->dongles[i].lock),
-				destroy_simulation(sim, i), 1);
-		i++;
-	}
+	if (pthread_cond_init(&sim->condition, NULL) != 0)
+		return (pthread_mutex_destroy(&sim->output_lock),
+			pthread_mutex_destroy(&sim->state_lock),
+			free(sim->dongles), free(sim->coders), 1);
 	return (0);
 }
 
@@ -71,6 +55,8 @@ static void	init_coders(t_sim *sim)
 		sim->coders[i].left = &sim->dongles[i];
 		sim->coders[i].right = &sim->dongles[(i + 1) % sim->number_of_coders];
 		sim->coders[i].last_compile_start = sim->sim_start_time;
+		sim->dongles[i].status = 0;
+		sim->dongles[i].release_time = 0;
 		i++;
 	}
 }
