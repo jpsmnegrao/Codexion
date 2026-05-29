@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 19:42:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/28 22:20:34 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/29 16:12:30 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ int	dongles_available(t_coder *coder)
 	long long	time;
 
 	time = get_time_ms();
+	if (coder->left == coder->right)
+		return (0);
 	if (coder->left->status != 0 || time < coder->left->release_time
 		+ coder->sim->dongle_cooldown)
 		return (0);
@@ -26,16 +28,21 @@ int	dongles_available(t_coder *coder)
 	return (1);
 }
 
-void	acquire_dongles(t_coder *coder)
+int	acquire_dongles(t_coder *coder)
 {
 	pthread_mutex_lock(&coder->sim->state_lock);
 	coder->is_waiting = 1;
 	coder->request_time = get_time_ms();
-	while (!can_proceed(coder))
+	while (!can_proceed(coder) && !coder->sim->stop)
 	{
 		pthread_mutex_unlock(&coder->sim->state_lock);
 		usleep(500);
 		pthread_mutex_lock(&coder->sim->state_lock);
+	}
+	if (coder->sim->stop)
+	{
+		pthread_mutex_unlock(&coder->sim->state_lock);
+		return (1);
 	}
 	coder->is_waiting = 0;
 	coder->left->status = 1;
@@ -43,6 +50,7 @@ void	acquire_dongles(t_coder *coder)
 	pthread_mutex_unlock(&coder->sim->state_lock);
 	log_state(coder, "has taken a dongle");
 	log_state(coder, "has taken a dongle");
+	return (0);
 }
 
 void	release_dongles(t_coder *coder)

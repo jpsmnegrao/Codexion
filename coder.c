@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 21:50:02 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/28 23:45:00 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/05/29 15:53:17 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,8 @@ static int	is_stopped(t_coder *coder)
 
 static void	compile(t_coder *coder)
 {
-	acquire_dongles(coder);
+	if (acquire_dongles(coder))
+		return ;
 	pthread_mutex_lock(&coder->sim->state_lock);
 	coder->last_compile_start = get_time_ms();
 	coder->times_compiled += 1;
