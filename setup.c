@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 22:09:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/28 20:42:56 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/16 00:09:22 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ void	destroy_simulation(t_sim *sim)
 	pthread_mutex_destroy(&sim->output_lock);
 	pthread_mutex_destroy(&sim->state_lock);
 	pthread_cond_destroy(&sim->condition);
+	heap_free(&sim->wait_queue);
 	free(sim->dongles);
 	free(sim->coders);
 }
@@ -71,9 +72,15 @@ int	setup_simulation(t_sim *sim)
 	sim->coders = malloc(sizeof(t_coder) * sim->number_of_coders);
 	if (!sim->coders)
 		return (free(sim->dongles), 1);
+	heap_init(&sim->wait_queue, sim->number_of_coders, sim->scheduler);
+	if (!heap_init(&sim->wait_queue, sim->number_of_coders, sim->scheduler))
+		return (free(sim->dongles), free(sim->coders), 1);
 	sim->stop = 0;
 	if (init_mutexes(sim) != 0)
+	{
+		heap_free(&sim->wait_queue);
 		return (1);
+	}
 	sim->sim_start_time = get_time_ms();
 	init_coders(sim);
 	return (0);
