@@ -6,17 +6,19 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/15 22:32:27 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/16 19:49:24 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/19 19:53:40 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-static int	has_priority(t_heap_entry a, t_heap_entry b)
+int	has_priority(t_heap_entry a, t_heap_entry b)
 {
-	if (a.prio < b.prio || (a.prio == b.prio && a.tiebreaker < b.tiebreaker))
+	if (a.prio < b.prio)
 		return (1);
-	return (0);
+	if (a.prio > b.prio)
+		return (0);
+	return (a.tiebreaker < b.tiebreaker);
 }
 
 int	smallest_child(t_heap_container *heap, int i)
@@ -45,9 +47,7 @@ void	heap_sift_up(t_heap_container *heap, int i)
 	while (i > 0)
 	{
 		parent = (i - 1) / 2;
-		if (heap->heap[i].prio < heap->heap[parent].prio
-			|| (heap->heap[i].prio == heap->heap[parent].prio
-				&& heap->heap[i].tiebreaker < heap->heap[parent].tiebreaker))
+		if (has_priority(heap->heap[i], heap->heap[parent]))
 		{
 			temp = heap->heap[i];
 			heap->heap[i] = heap->heap[parent];

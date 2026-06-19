@@ -85,43 +85,86 @@ This can be used to verify code style, memory management, and possible threading
 
 ### AI Usage
 
-AI was used as a support tool during development for:
+AI was used as a support tool during development, specifically for:
 
-	- Reviewing project structure and identifying possible edge cases;
-	- Improving README documentation;
-	- Helping create a .sh script to run some tests and confirm project follows
-      the pdf specs;
-	- Helping prepare explanations for concurrency and synchronization concepts;
+- Designing the heap-based priority queue (min-heap with sift-up/sift-down)
+  used for FIFO/EDF dongle arbitration;
+- Reviewing locking discipline (lock ordering between `state_lock` and
+  `output_lock`) to avoid deadlocks and data races;
+- Reviewing Makefile structure (PHONY targets, lint rule combining
+  norminette, valgrind, and helgrind);
+- Helping draft and refine this README's required sections.
+
+All AI-suggested code and explanations were reviewed, tested, and modified
+before integration; nothing was used without understanding its behavior.
 
 ## Additional Sections:
 
 ### Blocking cases handled
 
-The project handles several concurrency challenges:
+- **Deadlock prevention (Coffman's conditions):** a coder never holds one
+  dongle while waiting for the other. Both dongles are acquired atomically:
+  the coder is inserted into a priority heap and only takes its dongles once
+  it is at the top of the heap AND both dongles are free. This breaks the
+  hold-and-wait condition, so no circular wait can form.
 
-- Deadlock prevention: dongle access is controlled through a scheduler to
-  prevent circular waiting;
-- Starvation prevention: FIFO and EDF scheduling ensure fair access to
-  resources;
-- Dongle cooldown handling: released dongles remain unavailable until the
-  cooldown period has passed;
-- Burnout detection: a dedicated monitor thread checks coder deadlines and
-  stops the simulation when necessary;
-- Log synchronization: output is protected to prevent mixed or corrupted
-  messages;
-- Thread synchronization mechanisms.
+- **Starvation prevention:** the heap-based scheduler always grants dongles
+  to the coder with the highest priority (earliest request for FIFO, earliest
+  deadline for EDF). No coder can be skipped indefinitely while others are
+  served repeatedly.
+
+- **Dongle cooldown handling:** after release, a dongle's `release_time` is
+  recorded. Availability checks require `now >= release_time + cooldown`
+  before a dongle can be re-acquired. Coders poll periodically (instead of
+  blocking on a condition variable) because cooldown expiry is time-based,
+  not event-based — no thread would otherwise wake a sleeping coder when the
+  cooldown ends.
+
+- **Precise burnout detection:** a dedicated monitor thread polls every 500
+  microseconds, checking `now - last_compile_start > time_to_burnout` for
+  every coder. This keeps detection well within the 10ms tolerance required
+  by the subject.
+
+- **Log serialization:** every state-change log is wrapped in `output_lock`,
+  ensuring two threads can never interleave characters within or across log
+  lines.
+
+- **Single-coder edge case:** when only one coder exists, its left and right
+  dongle point to the same physical dongle. The code explicitly detects this
+  (`left == right`) and never allows a coder to "duplicate" a dongle by
+  acquiring the same one twice — it always burns out instead, matching the
+  subject's two-dongles-required-to-compile rule.
 
 ### Thread synchronization mechanisms
 
-The project uses POSIX threads and mutexes to safely coordinate concurrent
-execution.
+- **`state_lock` (pthread_mutex_t):** protects all shared simulation state —
+  the stop flag, each coder's `times_compiled` and `last_compile_start`,
+  each dongle's `status` and `release_time`, and the priority heap itself.
+  Every read or write to this state happens while holding `state_lock`,
+  preventing race conditions between coder threads and the monitor thread.
 
-- pthread_mutex_t is used to protect shared simulation state, dongle status,
-  and output logging;
-- a custom heap-based queue manages dongle requests according to FIFO or EDF
-  scheduling;
-- a monitor thread safely communicates simulation state changes through
-  protected shared variables.
+- **`output_lock` (pthread_mutex_t):** protects all calls to `printf` for
+  state-change logging, guaranteeing serialized, non-interleaved output.
 
-Mutex protection prevents race conditions when multiple coder threads access
-shared resources at the same time.
+- **Heap-based priority queue:** dongle requests are not served on a
+  first-checked basis but through an explicit min-heap keyed by priority
+  (`request_time` for FIFO, `last_compile_start + time_to_burnout` for EDF).
+  A coder only proceeds when it is the root of the heap AND its dongles are
+  physically free — this combination prevents both starvation and dongle
+  duplication.
+
+- **Coder/monitor communication:** the monitor thread and coder threads never
+  communicate directly; they only observe and modify shared state under
+  `state_lock`. For example, when the monitor detects burnout, it sets
+  `sim->stop = 1` under the lock. Coder threads check this flag (also under
+  the lock) between every action (compile/debug/refactor) and inside the
+  dongle-acquisition wait loop, ensuring they stop promptly without a race
+  on the flag itself.
+
+- **Why polling instead of `pthread_cond_wait`:** dongle availability depends
+  on cooldown expiry, a purely time-based condition with no corresponding
+  event to broadcast on. Using `pthread_cond_wait` here would risk a
+  permanent sleep if every coder is blocked only by cooldown, since nothing
+  would ever signal the condition variable. Coders instead release the lock,
+  sleep briefly (500 microseconds), and re-acquire the lock to re-check —
+  avoiding both busy-waiting and the cooldown-deadlock risk.
