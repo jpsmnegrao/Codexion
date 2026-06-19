@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/16 00:12:16 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/19 17:32:20 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,22 @@
 # include <string.h>
 # include <sys/time.h>
 
-typedef struct s_coder	t_coder;
-typedef struct s_heap_container	t_heap_container;
+typedef struct s_coder			t_coder;
+
+typedef struct s_heap_entry
+{
+	t_coder		*coder;
+	long long	prio;
+	int			tiebreaker;
+}	t_heap_entry;
+
+typedef struct s_heap_container
+{
+	t_heap_entry	*heap;
+	int				size;
+	int				capacity;
+	int				scheduler;
+}	t_heap_container;
 
 typedef struct s_dongle
 {
@@ -44,7 +58,6 @@ typedef struct s_sim
 	int					stop;
 	pthread_mutex_t		output_lock;
 	pthread_mutex_t		state_lock;
-	pthread_cond_t		condition;
 	t_coder				*coders;
 	t_dongle			*dongles;
 	t_heap_container	wait_queue;
@@ -57,26 +70,10 @@ typedef struct s_coder
 	int				times_compiled;
 	long long		last_compile_start;
 	long long		request_time;
-	int				is_waiting;
 	t_dongle		*left;
 	t_dongle		*right;
 	t_sim			*sim;
 }	t_coder;
-
-typedef struct s_heap_entry
-{
-	t_coder		*coder;
-	long long	prio;
-	int			tiebreaker;
-}	t_heap_entry;
-
-typedef struct s_heap_container
-{
-	t_heap_entry	*heap;
-	int				size;
-	int				capacity;
-	int				scheduler;
-}	t_heap_container;
 
 // PARSING AND INITIALIZATION
 
@@ -87,16 +84,14 @@ void			destroy_simulation(t_sim *sim);
 
 // SIMULATION
 
-int				run_sim(t_sim *sim);
 void			*coder_routine(void *arg);
-void			log_state(t_coder *coder, const char *state);
 int				acquire_dongles(t_coder *coder);
 void			release_dongles(t_coder *coder);
 int				dongles_available(t_coder *coder);
-int				can_proceed(t_coder *coder);
 
 // HEAP MANAGEMENT
 
+int				can_proceed(t_coder *coder);
 int				smallest_child(t_heap_container *heap, int i);
 void			heap_sift_up(t_heap_container *heap, int i);
 int				heap_init(t_heap_container *s_heap_container, int capacity,
@@ -109,5 +104,6 @@ void			heap_free(t_heap_container *s_heap_container);
 // MONITORING
 
 void			*monitor_routine(void *arg);
+void			log_state(t_coder *coder, const char *state);
 
 #endif

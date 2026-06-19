@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/25 13:51:20 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/29 15:58:22 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/19 17:31:44 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ static int	check_burnout(t_sim *sim)
 	time = get_time_ms();
 	while (i < sim->number_of_coders)
 	{
-		if (time - sim->coders[i].last_compile_start > sim->time_to_burnout)
+		if (time - sim->coders[i].last_compile_start >= sim->time_to_burnout)
 		{
 			sim->stop = 1;
 			log_state(&sim->coders[i], "burned out");
@@ -45,6 +45,16 @@ static int	check_total_compiles(t_sim *sim)
 	}
 	sim->stop = 1;
 	return (1);
+}
+
+void	log_state(t_coder *coder, const char *state)
+{
+	long long	current_time;
+
+	current_time = get_time_ms() - coder->sim->sim_start_time;
+	pthread_mutex_lock(&coder->sim->output_lock);
+	printf("%lld %d %s\n", current_time, coder->id, state);
+	pthread_mutex_unlock(&coder->sim->output_lock);
 }
 
 void	*monitor_routine(void *arg)

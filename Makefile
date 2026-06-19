@@ -4,8 +4,8 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -pthread
 RM = rm -rf
 
-SOURCES = codexion.c parser.c setup.c run_sim.c monitor.c scheduler.c coder.c log.c \
-		  dongles.c heap.c heap_utils.c
+SOURCES = coder.c codexion.c dongles.c heap.c heap_utils.c monitor.c parser.c \
+		  setup.c
 
 OBJS = $(SOURCES:.c=.o)
 
@@ -27,10 +27,9 @@ re: fclean all
 
 lint:
 	norminette
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME) 5 100 100 100 100 10 50 edf
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME) 2 800 200 100 100 5 50 fifo
-	valgrind --tool=helgrind ./$(NAME) 5 100 100 100 100 10 50 edf
-	valgrind --tool=helgrind ./$(NAME) 2 800 200 100 100 5 50 fifo
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME) 3 500 100 100 100 3 50 fifo
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME) 3 150 200 100 100 5 50 edf
+	valgrind --tool=helgrind ./$(NAME) 3 500 100 100 100 3 50 edf
+	valgrind --tool=helgrind ./$(NAME) 3 150 200 100 100 5 50 fifo
 
 .PHONY: all clean fclean re lint

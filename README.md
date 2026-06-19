@@ -4,75 +4,124 @@
 
 ## Description
 
-MAMBO JAMBO
+Codexion is a C concurrency project that simulates multiple coders competing
+for shared USB dongles using POSIX threads and mutexes.
+
+Each coder runs in its own thread and must compile, debug, and refactor while
+safely managing shared resources. The project implements synchronization,
+deadlock prevention, resource cooldowns, and FIFO/EDF scheduling to ensure
+fair access and avoid burnout.
 
 ## Instructions
+
+### Compilation
+To compile the project and create the codexion executable run:
+
+`make`
+
+### Usage
 
 `./codexion number_of_coders time_to_burnout time_to_compile time_to_debug`
 `time_to_refactor number_of_compiles_required dongle_cooldown scheduler`
 
-- number_of_coders — number of coders (and dongles) in the simulation
+- number_of_coders — number of coders (and dongles) in the simulation;
 - time_to_burnout — ms a coder can go since its last compile (or sim start)
-  before burning out
-- time_to_compile — ms a coder spends compiling (holding two dongles)
-- time_to_debug — ms a coder spends debugging
-- time_to_refactor — ms a coder spends refactoring
+  before burning out;
+- time_to_compile — ms a coder spends compiling (holding two dongles);
+- time_to_debug — ms a coder spends debugging;
+- time_to_refactor — ms a coder spends refactoring;
 - number_of_compiles_required — number of compiles each coder must reach to
-  stop the simulation. Otherwise, the simulation runs until a coder burns out
-- dongle_cooldown — ms a dongle stays unavailable after being released
-- scheduler — dongle arbitration policy: fifo or edf
+  stop the simulation. Otherwise, the simulation runs until a coder burns out;
+- dongle_cooldown — ms a dongle stays unavailable after being released;
+- scheduler — dongle arbitration policy: fifo or edf:
+  - fifo — First In, First Out scheduling;
+  - edf — Earliest Deadline First scheduling.
 
 All arguments are mandatory; times are in milliseconds.
 
-Example:
+### Example:
 
-`./codexion 5 800 200 100 100 5 50 fifo`
+./codexion 5 800 200 200 200 10 50 edf
+
+### Cleanup
+
+Remove object files:
+
+`make clean`
+
+Remove executable and objects:
+
+`make fclean`
+
+Recompile:
+
+`make re`
+
+### Testing / Debugging
+
+The Makefile includes a lint rule that runs:
+
+- Norminette check;
+- Valgrind memory leak checks;
+- Helgrind thread-safety checks.
+
+Run:
+
+make lint
+
+This can be used to verify code style, memory management, and possible threading issues.
 
 ## Resources
 
 ### References
 
+- POSIX Threads documentation (pthread_create, pthread_mutex, synchronization
+  primitives);
+- Man pages for pthread functions and gettimeofday;
+- Research on the following concepts: threads, race conditions, deadlocks, and
+  synchronization - this YouTube channel was quite useful -
+  https://www.youtube.com/playlist?list=PLfqABt5AS4FmuQf70psXrsMLEDQXNkLq2;
+- Classic Dining Philosophers problem and resource allocation strategies.
+
+### AI Usage
+
+AI was used as a support tool during development for:
+
+	- Reviewing project structure and identifying possible edge cases;
+	- Improving README documentation;
+	- Helping create a .sh script to run some tests and confirm project follows
+      the pdf specs;
+	- Helping prepare explanations for concurrency and synchronization concepts;
 
 ## Additional Sections:
 
 ### Blocking cases handled
 
+The project handles several concurrency challenges:
+
+- Deadlock prevention: dongle access is controlled through a scheduler to
+  prevent circular waiting;
+- Starvation prevention: FIFO and EDF scheduling ensure fair access to
+  resources;
+- Dongle cooldown handling: released dongles remain unavailable until the
+  cooldown period has passed;
+- Burnout detection: a dedicated monitor thread checks coder deadlines and
+  stops the simulation when necessary;
+- Log synchronization: output is protected to prevent mixed or corrupted
+  messages;
+- Thread synchronization mechanisms.
+
 ### Thread synchronization mechanisms
 
-#
+The project uses POSIX threads and mutexes to safely coordinate concurrent
+execution.
 
-# Readme Requirements
+- pthread_mutex_t is used to protect shared simulation state, dongle status,
+  and output logging;
+- a custom heap-based queue manages dongle requests according to FIFO or EDF
+  scheduling;
+- a monitor thread safely communicates simulation state changes through
+  protected shared variables.
 
-A README.md file must be provided at the root of your Git repository. Its 
-purpose is to allow anyone unfamiliar with the project (peers, staff, 
-recruiters, etc.) to quickly understand what the project is about, how to run
-it, and where to find more information on the topic.
-
-The README.md must include at least:
-• The very first line must be italicized and read: This project has been 
-created as part of the 42 curriculum by <login1>[, <login2>[, <login3>[...]]].
-• A “Description” section that clearly presents the project, including its
-goal and a brief overview.
-• An “Instructions” section containing any relevant information about
-compilation, installation, and/or execution.
-• A “Resources” section listing classic references related to the topic
-(documentation, articles, tutorials, etc.), as well as a description of how AI
-was used — specifying for which tasks and which parts of the project.
-
-➠ Additional sections may be required depending on the project (e.g., usage
-examples, feature list, technical choices, etc.).
-Any required additions will be explicitly listed below.
-
-For this project, the README.md must also include:
-
-• A “Blocking cases handled” section describing all the concurrency issues
-addressed in your solution (e.g., deadlock prevention and Coffman’s conditions,
-starvation prevention, cooldown handling, precise burnout detection, and log
-serialization).
-
-• A “Thread synchronization mechanisms” section explaining the specific 
-threading primitives used in your implementation (pthread_mutex_t,
-pthread_cond_t, custom event implementation) and how they coordinate access to
-shared resources (dongles, logging, monitor state). Include examples of how
-race conditions are prevented and how thread-safe communication is achieved
-between coders and the monitor.
+Mutex protection prevents race conditions when multiple coder threads access
+shared resources at the same time.

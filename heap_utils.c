@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/15 22:32:27 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/15 23:46:49 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/16 19:49:24 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,4 +57,14 @@ void	heap_sift_up(t_heap_container *heap, int i)
 		else
 			break ;
 	}
+}
+
+int	can_proceed(t_coder *coder)
+{
+	if (coder->sim->wait_queue.size == 0)
+		return (0);
+	if (dongles_available(coder)
+		&& coder->sim->wait_queue.heap[0].coder == coder)
+		return (1);
+	return (0);
 }

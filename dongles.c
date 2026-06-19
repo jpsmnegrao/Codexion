@@ -6,11 +6,31 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 19:42:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/29 16:12:30 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/16 20:36:27 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
+
+static long long	prio_calculation(t_coder *coder)
+{
+	if (coder->sim->scheduler == 0)
+		return (coder->request_time);
+	return (coder->last_compile_start + coder->sim->time_to_burnout);
+}
+
+static int	take_dongles(t_coder *coder)
+{
+	t_heap_entry	top;
+
+	top = coder->sim->wait_queue.heap[0];
+	if (top.coder != coder || coder->sim->stop)
+		return (0);
+	heap_extract_min(&coder->sim->wait_queue);
+	coder->left->status = 1;
+	coder->right->status = 1;
+	return (1);
+}
 
 int	dongles_available(t_coder *coder)
 {
@@ -31,8 +51,9 @@ int	dongles_available(t_coder *coder)
 int	acquire_dongles(t_coder *coder)
 {
 	pthread_mutex_lock(&coder->sim->state_lock);
-	coder->is_waiting = 1;
 	coder->request_time = get_time_ms();
+	heap_insert(&coder->sim->wait_queue, coder, prio_calculation(coder),
+		coder->id);
 	while (!can_proceed(coder) && !coder->sim->stop)
 	{
 		pthread_mutex_unlock(&coder->sim->state_lock);
@@ -41,12 +62,15 @@ int	acquire_dongles(t_coder *coder)
 	}
 	if (coder->sim->stop)
 	{
+		heap_extract_min(&coder->sim->wait_queue);
 		pthread_mutex_unlock(&coder->sim->state_lock);
 		return (1);
 	}
-	coder->is_waiting = 0;
-	coder->left->status = 1;
-	coder->right->status = 1;
+	if (!take_dongles(coder))
+	{
+		pthread_mutex_unlock(&coder->sim->state_lock);
+		return (1);
+	}
 	pthread_mutex_unlock(&coder->sim->state_lock);
 	log_state(coder, "has taken a dongle");
 	log_state(coder, "has taken a dongle");
@@ -55,10 +79,13 @@ int	acquire_dongles(t_coder *coder)
 
 void	release_dongles(t_coder *coder)
 {
+	long long	now;
+
 	pthread_mutex_lock(&coder->sim->state_lock);
+	now = get_time_ms();
 	coder->left->status = 0;
-	coder->left->release_time = get_time_ms();
+	coder->left->release_time = now;
 	coder->right->status = 0;
-	coder->right->release_time = get_time_ms();
+	coder->right->release_time = now;
 	pthread_mutex_unlock(&coder->sim->state_lock);
 }
