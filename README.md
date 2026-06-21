@@ -113,15 +113,14 @@ before integration; nothing was used without understanding its behavior.
   deadline for EDF). No coder can be skipped indefinitely while others are
   served repeatedly.
 
-- **Dongle cooldown handling:** after release, a dongle's `release_time` is
-  recorded. Availability checks require `now >= release_time + cooldown`
-  before a dongle can be re-acquired. Coders poll periodically (instead of
-  blocking on a condition variable) because cooldown expiry is time-based,
-  not event-based — no thread would otherwise wake a sleeping coder when the
-  cooldown ends.
+- **Dongle cooldown handling:** the implementation does not use condition
+  variables for dongle acquisition. Waiting coders poll under state_lock, sleep
+  briefly with usleep(500), and check again. This matches the cooldown model
+  and keeps the acquisition logic simple and deterministic with the heap-based
+  scheduler.
 
 - **Precise burnout detection:** a dedicated monitor thread polls every 500
-  microseconds, checking `now - last_compile_start > time_to_burnout` for
+  microseconds, checking `now - last_compile_start >= time_to_burnout` for
   every coder. This keeps detection well within the 10ms tolerance required
   by the subject.
 
@@ -137,34 +136,26 @@ before integration; nothing was used without understanding its behavior.
 
 ### Thread synchronization mechanisms
 
-- **`state_lock` (pthread_mutex_t):** protects all shared simulation state —
-  the stop flag, each coder's `times_compiled` and `last_compile_start`,
-  each dongle's `status` and `release_time`, and the priority heap itself.
-  Every read or write to this state happens while holding `state_lock`,
-  preventing race conditions between coder threads and the monitor thread.
+- **state_lock (pthread_mutex_t):** protects shared simulation state, including
+  sim->stop, each coder’s times_compiled, last_compile_start, and request_time,
+  each dongle’s status and release_time, and the wait queue heap. Any thread
+  that reads or updates this state does so while holding the mutex.
 
-- **`output_lock` (pthread_mutex_t):** protects all calls to `printf` for
-  state-change logging, guaranteeing serialized, non-interleaved output.
+- **output_lock (pthread_mutex_t):** protects printf so log lines are never
+  interleaved.
 
-- **Heap-based priority queue:** dongle requests are not served on a
-  first-checked basis but through an explicit min-heap keyed by priority
-  (`request_time` for FIFO, `last_compile_start + time_to_burnout` for EDF).
-  A coder only proceeds when it is the root of the heap AND its dongles are
-  physically free — this combination prevents both starvation and dongle
-  duplication.
+- **Heap-based priority queue:** the wait queue is a custom min-heap used to decide
+  which coder may proceed. FIFO uses request_time as the priority; EDF uses
+  last_compile_start + time_to_burnout. A coder only takes dongles when it is
+  at the top of the heap and both dongles are available.
 
-- **Coder/monitor communication:** the monitor thread and coder threads never
-  communicate directly; they only observe and modify shared state under
-  `state_lock`. For example, when the monitor detects burnout, it sets
-  `sim->stop = 1` under the lock. Coder threads check this flag (also under
-  the lock) between every action (compile/debug/refactor) and inside the
-  dongle-acquisition wait loop, ensuring they stop promptly without a race
-  on the flag itself.
+- **Monitor and coder coordination:** coder threads and the monitor thread do not
+  communicate directly. They only coordinate through shared state under
+  state_lock. The monitor sets sim->stop = 1 when a coder burns out or when
+  all coders complete the required number of compiles, and coders check that
+  flag between actions and while waiting for dongles.
 
-- **Why polling instead of `pthread_cond_wait`:** dongle availability depends
-  on cooldown expiry, a purely time-based condition with no corresponding
-  event to broadcast on. Using `pthread_cond_wait` here would risk a
-  permanent sleep if every coder is blocked only by cooldown, since nothing
-  would ever signal the condition variable. Coders instead release the lock,
-  sleep briefly (500 microseconds), and re-acquire the lock to re-check —
-  avoiding both busy-waiting and the cooldown-deadlock risk.
+- **Polling instead of condition variables:** the project does not use
+  pthread_cond_wait for dongle acquisition. Coders periodically release
+  state_lock, sleep briefly, and re-check the shared state. This avoids
+  blocking forever on a purely time-based cooldown condition.
