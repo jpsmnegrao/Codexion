@@ -15,6 +15,7 @@ fair access and avoid burnout.
 ## Instructions
 
 ### Compilation
+
 To compile the project and create the codexion executable run:
 
 `make`
@@ -41,7 +42,7 @@ All arguments are mandatory; times are in milliseconds.
 
 ### Example:
 
-./codexion 5 800 200 200 200 10 50 edf
+`./codexion 5 800 200 200 200 10 50 edf`
 
 ### Cleanup
 
@@ -67,7 +68,7 @@ The Makefile includes a lint rule that runs:
 
 Run:
 
-make lint
+`make lint`
 
 This can be used to verify code style, memory management, and possible threading issues.
 
