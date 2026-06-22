@@ -122,14 +122,14 @@ run_test "5 10000 60 60 60 10 60 edf" "complete" "Fairness edf" "40"
 
 
 echo -e "\n${YELLOW}--- PARALLEL DONGLE USAGE (manual check) ---${RESET}"
-# These cases use enough coders that some can compile independently
-# (non-adjacent coders share no dongles). Inspect the "is compiling"
-# lines below: if the fix is correct, you should see different coder
-# IDs starting to compile at the same or very close timestamps,
-# confirming that multiple non-conflicting dongle pairs can be used
-# at the same time instead of serializing all access.
-echo "Checking 6 coders fifo:"
+echo "These cases use enough coders that some can compile independently
+(non-adjacent coders share no dongles). Inspect the "is compiling"
+lines below: if the fix is correct, you should see different coder
+IDs starting to compile at the same or very close timestamps,
+confirming that multiple non-conflicting dongle pairs can be used
+at the same time instead of serializing all access."
+echo "Checking 6 coders/3 compiles fifo:"
 ./codexion 6 5000 100 50 50 3 50 fifo | grep "is compiling"
 echo ""
-echo "Checking 6 coders edf:"
+echo "Checking 6 coders/3 compiles edf:"
 ./codexion 6 5000 100 50 50 3 50 edf | grep "is compiling"
