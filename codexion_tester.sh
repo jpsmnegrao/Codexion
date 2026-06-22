@@ -119,3 +119,17 @@ run_test "4 5000 60 60 60 4 300 fifo" "complete" "Cooldown stress fifo" "30"
 run_test "4 5000 60 60 60 4 300 edf" "complete" "Cooldown stress edf" "30"
 run_test "5 10000 60 60 60 10 60 fifo" "complete" "Fairness fifo" "40"
 run_test "5 10000 60 60 60 10 60 edf" "complete" "Fairness edf" "40"
+
+
+echo -e "\n${YELLOW}--- PARALLEL DONGLE USAGE (manual check) ---${RESET}"
+# These cases use enough coders that some can compile independently
+# (non-adjacent coders share no dongles). Inspect the "is compiling"
+# lines below: if the fix is correct, you should see different coder
+# IDs starting to compile at the same or very close timestamps,
+# confirming that multiple non-conflicting dongle pairs can be used
+# at the same time instead of serializing all access.
+echo "Checking 6 coders fifo:"
+./codexion 6 5000 100 50 50 3 50 fifo | grep "is compiling"
+echo ""
+echo "Checking 6 coders edf:"
+./codexion 6 5000 100 50 50 3 50 edf | grep "is compiling"

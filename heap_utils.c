@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/15 22:32:27 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/21 18:58:11 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/22 00:34:07 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,12 +59,42 @@ void	heap_sift_up(t_heap_container *heap, int i)
 	}
 }
 
+static int	loses_to_contender(t_coder *coder, t_dongle *dongle)
+{
+	t_heap_container	*q;
+	t_heap_entry		*self;
+	int					i;
+
+	q = &coder->sim->wait_queue;
+	self = NULL;
+	i = 0;
+	while (i < q->size)
+	{
+		if (q->heap[i].coder == coder)
+			self = &q->heap[i];
+		i++;
+	}
+	if (!self)
+		return (0);
+	i = 0;
+	while (i < q->size)
+	{
+		if (q->heap[i].coder != coder && (q->heap[i].coder->left == dongle
+				|| q->heap[i].coder->right == dongle)
+			&& has_priority(q->heap[i], *self))
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
 int	can_proceed(t_coder *coder)
 {
-	if (coder->sim->wait_queue.size == 0)
+	if (!dongles_available(coder))
 		return (0);
-	if (dongles_available(coder)
-		&& coder->sim->wait_queue.heap[0].coder == coder)
-		return (1);
-	return (0);
+	if (loses_to_contender(coder, coder->left))
+		return (0);
+	if (loses_to_contender(coder, coder->right))
+		return (0);
+	return (1);
 }

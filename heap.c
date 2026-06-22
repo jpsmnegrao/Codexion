@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/15 19:07:07 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/15 23:51:32 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/22 00:35:47 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,19 +69,17 @@ int	heap_insert(t_heap_container *s_heap_container, t_coder *coder,
 	return (1);
 }
 
-t_heap_entry	heap_extract_min(t_heap_container *heap)
+void	heap_remove(t_heap_container *heap, t_coder *coder)
 {
-	t_heap_entry	min;
-	t_heap_entry	empty;
+	int	i;
 
-	if (heap->size == 0)
-	{
-		memset(&empty, 0, sizeof(t_heap_entry));
-		return (empty);
-	}
-	min = heap->heap[0];
-	heap->heap[0] = heap->heap[heap->size - 1];
+	i = 0;
+	while (i < heap->size && heap->heap[i].coder != coder)
+		i++;
+	if (i == heap->size)
+		return ;
+	heap->heap[i] = heap->heap[heap->size - 1];
 	heap->size--;
-	sift_down(heap, 0);
-	return (min);
+	sift_down(heap, i);
+	heap_sift_up(heap, i);
 }

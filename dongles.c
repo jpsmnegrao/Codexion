@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 19:42:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/21 18:18:46 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/22 02:09:35 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,7 @@ static long long	prio_calculation(t_coder *coder)
 
 static int	take_dongles(t_coder *coder)
 {
-	t_heap_entry	top;
-
-	top = coder->sim->wait_queue.heap[0];
-	if (top.coder != coder || coder->sim->stop)
-		return (0);
-	heap_extract_min(&coder->sim->wait_queue);
+	heap_remove(&coder->sim->wait_queue, coder);
 	coder->left->status = 1;
 	coder->right->status = 1;
 	return (1);
@@ -62,7 +57,7 @@ int	acquire_dongles(t_coder *coder)
 	}
 	if (coder->sim->stop)
 	{
-		heap_extract_min(&coder->sim->wait_queue);
+		heap_remove(&coder->sim->wait_queue, coder);
 		pthread_mutex_unlock(&coder->sim->state_lock);
 		return (1);
 	}

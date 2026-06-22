@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/19 19:52:41 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/22 00:36:27 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ int				heap_init(t_heap_container *s_heap_container, int capacity,
 					int scheduler);
 int				heap_insert(t_heap_container *s_heap_container, t_coder *coder,
 					long long prio, int tiebreaker);
-t_heap_entry	heap_extract_min(t_heap_container *heap);
+void			heap_remove(t_heap_container *heap, t_coder *coder);
 void			heap_free(t_heap_container *s_heap_container);
 
 // MONITORING
