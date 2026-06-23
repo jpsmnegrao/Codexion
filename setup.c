@@ -6,12 +6,13 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 22:09:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/19 17:25:04 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/23 17:12:58 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Return the current time in milliseconds. */
 long long	get_time_ms(void)
 {
 	struct timeval	tv;
@@ -20,15 +21,25 @@ long long	get_time_ms(void)
 	return ((long long)tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
+/* Release all resources owned by the simulation. */
 void	destroy_simulation(t_sim *sim)
 {
+	int	i;
+
+	i = 0;
 	pthread_mutex_destroy(&sim->output_lock);
 	pthread_mutex_destroy(&sim->state_lock);
+	while (i < sim->number_of_coders)
+	{
+		pthread_mutex_destroy(&sim->dongles[i].lock);
+		i++;
+	}
 	heap_free(&sim->wait_queue);
 	free(sim->dongles);
 	free(sim->coders);
 }
 
+/* Initialize the mutexes used for output serialization and shared state. */
 static int	init_mutexes(t_sim *sim)
 {
 	if (pthread_mutex_init(&sim->output_lock, NULL) != 0)
@@ -40,6 +51,7 @@ static int	init_mutexes(t_sim *sim)
 	return (0);
 }
 
+/* Initialize each coder and its associated left and right dongles. */
 static void	init_coders(t_sim *sim)
 {
 	int	i;
@@ -56,10 +68,19 @@ static void	init_coders(t_sim *sim)
 		sim->coders[i].request_time = 0;
 		sim->dongles[i].status = 0;
 		sim->dongles[i].release_time = 0;
+		sim->coders[i].request_initialized = 0;
+		i++;
+	}
+	i = 0;
+	while (i < sim->number_of_coders)
+	{
+		pthread_mutex_init(&sim->dongles[i].lock, NULL);
 		i++;
 	}
 }
 
+/* Allocate and initialize the simulation state, mutexes, heap, and coder
+   links. */
 int	setup_simulation(t_sim *sim)
 {
 	sim->dongles = malloc(sizeof(t_dongle) * sim->number_of_coders);
@@ -79,6 +100,7 @@ int	setup_simulation(t_sim *sim)
 		return (1);
 	}
 	sim->sim_start_time = get_time_ms();
+	sim->first_request_time = sim->sim_start_time;
 	init_coders(sim);
 	return (0);
 }

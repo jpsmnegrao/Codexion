@@ -6,12 +6,14 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:57 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/19 17:29:34 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/23 14:10:18 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Launch the monitor thread and all coder threads, then wait for them to 
+   finish. */
 static int	run_sim(t_sim *sim)
 {
 	int			i;
@@ -39,6 +41,8 @@ static int	run_sim(t_sim *sim)
 	return (create_failed);
 }
 
+/* Parse arguments, initialize the simulation, run it, then clean up
+   resources. */
 int	main(int argc, char *argv[])
 {
 	t_sim	sim;

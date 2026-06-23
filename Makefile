@@ -9,12 +9,14 @@ SOURCES = coder.c codexion.c dongles.c heap.c heap_utils.c monitor.c parser.c \
 
 OBJS = $(SOURCES:.c=.o)
 
+HEADERS = codexion.h
+
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	$(CC) $(OBJS) -o $(NAME)
+	$(CC) $(CFLAGS) $^ -o $@
 
-%.o: %.c
+%.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:

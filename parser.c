@@ -6,12 +6,14 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 17:52:08 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/05/24 23:22:04 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/23 14:12:06 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Convert a positive decimal string to a long long value.
+   Rejects empty strings, non-digit characters, and overflow beyond INT_MAX. */
 static int	parse_positive_int(char *str, long long *out)
 {
 	long long	num;
@@ -36,6 +38,8 @@ static int	parse_positive_int(char *str, long long *out)
 	return (0);
 }
 
+/* Parse and validate all command-line arguments for the simulation.
+   Also converts the scheduler string into the internal enum-like value. */
 int	parse_input(t_sim *sim, int argc, char *argv[])
 {
 	if (argc != 9)

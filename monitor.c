@@ -6,12 +6,13 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/25 13:51:20 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/19 17:31:44 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/23 17:16:04 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Check whether any coder has exceeded the burnout timeout. */
 static int	check_burnout(t_sim *sim)
 {
 	int			i;
@@ -32,6 +33,7 @@ static int	check_burnout(t_sim *sim)
 	return (0);
 }
 
+/* Check whether every coder has completed the required number of compiles. */
 static int	check_total_compiles(t_sim *sim)
 {
 	int	i;
@@ -47,6 +49,8 @@ static int	check_total_compiles(t_sim *sim)
 	return (1);
 }
 
+/* Print a timestamped state change for one coder, protected by the output
+   lock. */
 void	log_state(t_coder *coder, const char *state)
 {
 	long long	current_time;
@@ -57,6 +61,8 @@ void	log_state(t_coder *coder, const char *state)
 	pthread_mutex_unlock(&coder->sim->output_lock);
 }
 
+/* Monitor the simulation until a coder burns out or all required compiles are
+   done. */
 void	*monitor_routine(void *arg)
 {
 	t_sim		*sim;
@@ -84,4 +90,13 @@ void	*monitor_routine(void *arg)
 		usleep(500);
 	}
 	return (NULL);
+}
+
+/* Set the coder's request time, using a shared startup timestamp for the first
+   round. */
+void	set_request_time(t_coder *coder)
+{
+	if (coder->request_initialized)
+		coder->request_time = get_time_ms();
+	coder->request_initialized = 1;
 }

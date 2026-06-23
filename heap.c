@@ -6,12 +6,14 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/15 19:07:07 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/22 00:35:47 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/23 14:19:52 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Restore the heap property by moving an entry downward until it is ordered
+   correctly. */
 static void	sift_down(t_heap_container *heap, int i)
 {
 	t_heap_entry	temp;
@@ -29,6 +31,7 @@ static void	sift_down(t_heap_container *heap, int i)
 	}
 }
 
+/* Allocate and initialize the waiting-queue heap. */
 int	heap_init(t_heap_container *s_heap_container, int capacity,
 	int scheduler)
 {
@@ -41,6 +44,7 @@ int	heap_init(t_heap_container *s_heap_container, int capacity,
 	return (1);
 }
 
+/* Free the heap storage and reset its bookkeeping fields. */
 void	heap_free(t_heap_container *s_heap_container)
 {
 	if (!s_heap_container)
@@ -51,6 +55,7 @@ void	heap_free(t_heap_container *s_heap_container)
 	s_heap_container->capacity = 0;
 }
 
+/* Insert a coder into the waiting queue with its priority and tie-breaker. */
 int	heap_insert(t_heap_container *s_heap_container, t_coder *coder,
 	long long prio, int tiebreaker)
 {
@@ -69,6 +74,7 @@ int	heap_insert(t_heap_container *s_heap_container, t_coder *coder,
 	return (1);
 }
 
+/* Remove a coder from the waiting queue and restore the heap ordering. */
 void	heap_remove(t_heap_container *heap, t_coder *coder)
 {
 	int	i;

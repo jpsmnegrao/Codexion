@@ -6,12 +6,14 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/15 22:32:27 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/22 23:13:13 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/23 17:27:18 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/* Compare two heap entries and decide which one has higher priority.
+   Lower priority value wins; ties are broken by the tiebreaker field. */
 int	has_priority(t_heap_entry a, t_heap_entry b)
 {
 	if (a.prio < b.prio)
@@ -21,6 +23,8 @@ int	has_priority(t_heap_entry a, t_heap_entry b)
 	return (a.tiebreaker < b.tiebreaker);
 }
 
+/* Return the index of the smallest child in the min-heap, or i if none is 
+   smaller. */
 int	smallest_child(t_heap_container *heap, int i)
 {
 	int	left_child;
@@ -39,6 +43,7 @@ int	smallest_child(t_heap_container *heap, int i)
 	return (smallest);
 }
 
+/* Move the entry at index i upward until the heap ordering is restored. */
 void	heap_sift_up(t_heap_container *heap, int i)
 {
 	t_heap_entry	temp;
@@ -59,6 +64,8 @@ void	heap_sift_up(t_heap_container *heap, int i)
 	}
 }
 
+/* Check whether another coder waiting for the same dongle has higher 
+   priority. */
 static int	loses_to_contender(t_coder *coder, t_dongle *dongle)
 {
 	t_heap_container	*q;
@@ -80,14 +87,15 @@ static int	loses_to_contender(t_coder *coder, t_dongle *dongle)
 	while (i < q->size)
 	{
 		if (q->heap[i].coder != coder && (q->heap[i].coder->left == dongle
-				|| q->heap[i].coder->right == dongle)
-			&& has_priority(q->heap[i], *self))
+				|| q->heap[i].coder->right == dongle) && has_priority(
+				q->heap[i], *self) && dongles_available(q->heap[i].coder))
 			return (1);
 		i++;
 	}
 	return (0);
 }
 
+/* Decide whether the coder may proceed and take dongles now. */
 int	can_proceed(t_coder *coder)
 {
 	if (!dongles_available(coder))
