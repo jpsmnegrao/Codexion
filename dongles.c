@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 19:42:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/23 17:37:41 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/23 17:40:55 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,23 +36,17 @@ static int	take_dongles(t_coder *coder)
 int	dongles_available(t_coder *coder)
 {
 	long long	time;
-	int			available;
 
 	time = get_time_ms();
 	if (coder->left == coder->right)
 		return (0);
-	available = 1;
-	pthread_mutex_lock(&coder->left->lock);
 	if (coder->left->status != 0 || time < coder->left->release_time
 		+ coder->sim->dongle_cooldown)
-		available = 0;
-	pthread_mutex_unlock(&coder->left->lock);
-	pthread_mutex_lock(&coder->right->lock);
+		return (0);
 	if (coder->right->status != 0 || time < coder->right->release_time
 		+ coder->sim->dongle_cooldown)
-		available = 0;
-	pthread_mutex_unlock(&coder->right->lock);
-	return (available);
+		return (0);
+	return (1);
 }
 
 /* Register a dongle request, wait until the coder can proceed, and reserve
