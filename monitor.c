@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/25 13:51:20 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/23 17:16:04 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/25 17:44:36 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,11 +71,6 @@ void	*monitor_routine(void *arg)
 	while (1)
 	{
 		pthread_mutex_lock(&sim->state_lock);
-		if (sim->stop)
-		{
-			pthread_mutex_unlock(&sim->state_lock);
-			return (NULL);
-		}
 		if (check_burnout(sim))
 		{
 			pthread_mutex_unlock(&sim->state_lock);
@@ -90,13 +85,4 @@ void	*monitor_routine(void *arg)
 		usleep(500);
 	}
 	return (NULL);
-}
-
-/* Set the coder's request time, using a shared startup timestamp for the first
-   round. */
-void	set_request_time(t_coder *coder)
-{
-	if (coder->request_initialized)
-		coder->request_time = get_time_ms();
-	coder->request_initialized = 1;
 }

@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 21:50:02 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/23 15:53:59 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/25 18:12:11 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,10 @@ static void	compile(t_coder *coder)
 	pthread_mutex_unlock(&coder->sim->state_lock);
 	log_state(coder, "is compiling");
 	usleep(coder->sim->time_to_compile * 1000);
+	release_dongles(coder);
 	pthread_mutex_lock(&coder->sim->state_lock);
 	coder->times_compiled += 1;
 	pthread_mutex_unlock(&coder->sim->state_lock);
-	release_dongles(coder);
 }
 
 /* Run the debugging phase. */
@@ -63,10 +63,12 @@ void	*coder_routine(void *arg)
 	while (!is_stopped(coder))
 	{
 		compile(coder);
-		if (is_stopped(coder) == 0)
-			debug(coder);
-		if (is_stopped(coder) == 0)
-			refactor(coder);
+		if (is_stopped(coder))
+			break ;
+		debug(coder);
+		if (is_stopped(coder))
+			break ;
+		refactor(coder);
 	}
 	return (NULL);
 }

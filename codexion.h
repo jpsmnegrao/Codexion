@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/23 17:05:49 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/26 02:16:19 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ typedef struct s_dongle
 {
 	int				status;
 	long long		release_time;
+	long long		cooldown;
 	pthread_mutex_t	lock;
 }	t_dongle;
 
@@ -84,13 +85,13 @@ typedef struct s_coder
 	int				times_compiled;
 	long long		last_compile_start;
 	long long		request_time;
-	int				request_initialized;
+	int				in_queue;
 	t_dongle		*left;
 	t_dongle		*right;
 	t_sim			*sim;
 }	t_coder;
 
-// PARSING AND INITIALIZATION
+// PARSING & INITIALIZATION
 
 int				parse_input(t_sim *sim, int argc, char *argv[]);
 long long		get_time_ms(void);
@@ -103,11 +104,15 @@ void			*coder_routine(void *arg);
 int				acquire_dongles(t_coder *coder);
 void			release_dongles(t_coder *coder);
 int				dongles_available(t_coder *coder);
+
+// SCHEDULER LOGIC
+
 int				can_proceed(t_coder *coder);
+int				has_priority(t_heap_entry a, t_heap_entry b);
+int				scheduler_step(t_coder *coder);
 
-// SCHEDULER QUEUE
+// HEAP/WAIT QUEUE
 
-void			set_request_time(t_coder *coder);
 int				smallest_child(t_heap_container *heap, int i);
 void			heap_sift_up(t_heap_container *heap, int i);
 int				heap_init(t_heap_container *s_heap_container, int capacity,
@@ -117,7 +122,7 @@ int				heap_insert(t_heap_container *s_heap_container, t_coder *coder,
 void			heap_remove(t_heap_container *heap, t_coder *coder);
 void			heap_free(t_heap_container *s_heap_container);
 
-// LOGGING AND MONITORING
+// LOGGING & MONITORING
 
 void			*monitor_routine(void *arg);
 void			log_state(t_coder *coder, const char *state);

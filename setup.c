@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 22:09:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/23 17:12:58 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/26 02:16:38 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@ void	destroy_simulation(t_sim *sim)
 	free(sim->coders);
 }
 
-/* Initialize the mutexes used for output serialization and shared state. */
+/* Initialize the mutexes used for output serialization and shared state.
+   On failure, release already allocated simulation resources. */
 static int	init_mutexes(t_sim *sim)
 {
 	if (pthread_mutex_init(&sim->output_lock, NULL) != 0)
@@ -51,7 +52,8 @@ static int	init_mutexes(t_sim *sim)
 	return (0);
 }
 
-/* Initialize each coder and its associated left and right dongles. */
+/* Initialize coder fields and assign their left/right dongles.
+   Also initializes each dongle's state and mutex. */
 static void	init_coders(t_sim *sim)
 {
 	int	i;
@@ -66,9 +68,9 @@ static void	init_coders(t_sim *sim)
 		sim->coders[i].right = &sim->dongles[(i + 1) % sim->number_of_coders];
 		sim->coders[i].last_compile_start = sim->sim_start_time;
 		sim->coders[i].request_time = 0;
+		sim->coders[i].in_queue = 0;
 		sim->dongles[i].status = 0;
 		sim->dongles[i].release_time = 0;
-		sim->coders[i].request_initialized = 0;
 		i++;
 	}
 	i = 0;
