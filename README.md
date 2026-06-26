@@ -145,10 +145,12 @@ before integration; nothing was used without understanding its behavior.
 - **output_lock (pthread_mutex_t):** protects printf so log lines are never
   interleaved.
 
-- **Heap-based priority queue:** the wait queue is a custom min-heap used to decide
-  which coder may proceed. FIFO uses request_time as the priority; EDF uses
-  last_compile_start + time_to_burnout. A coder only takes dongles when it is
-  at the top of the heap and both dongles are available.
+- **Heap-based priority queue:** the wait queue is a custom min-heap used to
+  decide which coder may proceed. FIFO uses request_time as the priority; EDF
+  uses last_compile_start + time_to_burnout as the primary key, with the coder
+  ID acting as a tie-breaker to guarantee deterministic behavior in edge cases.
+  A coder only takes dongles when it is at the top of the heap and both dongles
+  are available.
 
 - **Monitor and coder coordination:** coder threads and the monitor thread do not
   communicate directly. They only coordinate through shared state under
