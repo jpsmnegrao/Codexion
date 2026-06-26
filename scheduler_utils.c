@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 15:48:57 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/26 02:30:49 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/26 17:20:03 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,22 @@
 
 /* Compute the priority used to order a coder in the waiting queue.
    FIFO uses the request time, while EDF uses the burnout deadline. */
-static long long	prio_calculation(t_coder *coder)
+long long	prio_calculation(t_coder *coder)
 {
 	if (coder->sim->scheduler == 0)
 		return (coder->request_time);
 	return (coder->last_compile_start + coder->sim->time_to_burnout);
+}
+
+static int	is_contender_ready(t_coder *contender)
+{
+	if (contender->left == contender->right)
+		return (0);
+	if (contender->left->status != 0)
+		return (0);
+	if (contender->right->status != 0)
+		return (0);
+	return (1);
 }
 
 /* Check whether another coder waiting for the same dongle has higher 
@@ -31,23 +42,21 @@ static int	loses_to_contender(t_coder *coder, t_dongle *dongle)
 
 	q = &coder->sim->wait_queue;
 	self = NULL;
-	i = 0;
-	while (i < q->size)
-	{
+	i = -1;
+	while (++i < q->size)
 		if (q->heap[i].coder == coder)
 			self = &q->heap[i];
-		i++;
-	}
 	if (!self)
 		return (0);
-	i = 0;
-	while (i < q->size)
+	i = -1;
+	while (++i < q->size)
 	{
-		if (q->heap[i].coder != coder && (q->heap[i].coder->left == dongle
-				|| q->heap[i].coder->right == dongle) && has_priority(
-				q->heap[i], *self))
+		if (q->heap[i].coder != coder
+			&& (q->heap[i].coder->left == dongle
+				|| q->heap[i].coder->right == dongle)
+			&& has_priority(q->heap[i], *self)
+			&& is_contender_ready(q->heap[i].coder))
 			return (1);
-		i++;
 	}
 	return (0);
 }
@@ -66,22 +75,14 @@ int	can_proceed(t_coder *coder)
    - return 1 if the simulation has stopped
    - return 0 if the coder must wait due to priority
    - return 2 if the coder may attempt to acquire dongles */
-int	scheduler_step(t_coder *coder)
+int	try_secure_resources(t_coder *coder)
 {
-	if (coder->sim->stop)
-		return (1);
-	if (coder->left == coder->right)
-		return (0);
-	if (!coder->in_queue)
+	if (can_proceed(coder) && dongles_available(coder))
 	{
-		coder->request_time = get_time_ms();
-		heap_insert(&coder->sim->wait_queue, coder,
-			prio_calculation(coder), coder->id);
-		coder->in_queue = 1;
+		take_dongles(coder);
+		heap_remove(&coder->sim->wait_queue, coder);
+		coder->in_queue = 0;
+		return (1);
 	}
-	if (!can_proceed(coder))
-		return (0);
-	heap_remove(&coder->sim->wait_queue, coder);
-	coder->in_queue = 0;
-	return (2);
+	return (0);
 }

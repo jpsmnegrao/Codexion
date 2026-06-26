@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/26 02:16:19 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/26 17:28:27 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@ typedef struct s_dongle
 {
 	int				status;
 	long long		release_time;
-	long long		cooldown;
 	pthread_mutex_t	lock;
 }	t_dongle;
 
@@ -67,9 +66,9 @@ typedef struct s_sim
 	int					scheduler;
 	long long			sim_start_time;
 	int					stop;
-	long long			first_request_time;
 	pthread_mutex_t		output_lock;
 	pthread_mutex_t		state_lock;
+	pthread_cond_t		state_cond;
 	t_coder				*coders;
 	t_dongle			*dongles;
 	t_heap_container	wait_queue;
@@ -94,7 +93,6 @@ typedef struct s_coder
 // PARSING & INITIALIZATION
 
 int				parse_input(t_sim *sim, int argc, char *argv[]);
-long long		get_time_ms(void);
 int				setup_simulation(t_sim *sim);
 void			destroy_simulation(t_sim *sim);
 
@@ -104,15 +102,17 @@ void			*coder_routine(void *arg);
 int				acquire_dongles(t_coder *coder);
 void			release_dongles(t_coder *coder);
 int				dongles_available(t_coder *coder);
+int				take_dongles(t_coder *coder);
+int				try_secure_resources(t_coder *coder);
 
 // SCHEDULER LOGIC
 
 int				can_proceed(t_coder *coder);
-int				has_priority(t_heap_entry a, t_heap_entry b);
-int				scheduler_step(t_coder *coder);
+long long		prio_calculation(t_coder *coder);
 
 // HEAP/WAIT QUEUE
 
+int				has_priority(t_heap_entry a, t_heap_entry b);
 int				smallest_child(t_heap_container *heap, int i);
 void			heap_sift_up(t_heap_container *heap, int i);
 int				heap_init(t_heap_container *s_heap_container, int capacity,
@@ -124,6 +124,7 @@ void			heap_free(t_heap_container *s_heap_container);
 
 // LOGGING & MONITORING
 
+long long		get_time_ms(void);
 void			*monitor_routine(void *arg);
 void			log_state(t_coder *coder, const char *state);
 

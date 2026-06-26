@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/27 21:50:02 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/25 18:12:11 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/26 17:53:37 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,10 @@ static int	is_stopped(t_coder *coder)
 }
 
 /* Acquire dongles, mark the compile start time, and run the compile phase. */
-static void	compile(t_coder *coder)
+static int	compile(t_coder *coder)
 {
 	if (acquire_dongles(coder))
-		return ;
+		return (1);
 	pthread_mutex_lock(&coder->sim->state_lock);
 	coder->last_compile_start = get_time_ms();
 	pthread_mutex_unlock(&coder->sim->state_lock);
@@ -37,6 +37,7 @@ static void	compile(t_coder *coder)
 	pthread_mutex_lock(&coder->sim->state_lock);
 	coder->times_compiled += 1;
 	pthread_mutex_unlock(&coder->sim->state_lock);
+	return (0);
 }
 
 /* Run the debugging phase. */
@@ -62,7 +63,8 @@ void	*coder_routine(void *arg)
 	coder = (t_coder *)arg;
 	while (!is_stopped(coder))
 	{
-		compile(coder);
+		if (compile(coder) != 0)
+			break ;
 		if (is_stopped(coder))
 			break ;
 		debug(coder);

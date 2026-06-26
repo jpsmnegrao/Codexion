@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 22:09:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/26 02:16:38 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/26 17:59:04 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ void	destroy_simulation(t_sim *sim)
 	i = 0;
 	pthread_mutex_destroy(&sim->output_lock);
 	pthread_mutex_destroy(&sim->state_lock);
+	pthread_cond_destroy(&sim->state_cond);
 	while (i < sim->number_of_coders)
 	{
 		pthread_mutex_destroy(&sim->dongles[i].lock);
@@ -46,14 +47,21 @@ static int	init_mutexes(t_sim *sim)
 	if (pthread_mutex_init(&sim->output_lock, NULL) != 0)
 		return (1);
 	if (pthread_mutex_init(&sim->state_lock, NULL) != 0)
-		return (pthread_mutex_destroy(&sim->output_lock),
-			pthread_mutex_destroy(&sim->state_lock),
-			free(sim->dongles), free(sim->coders), 1);
+	{
+		pthread_mutex_destroy(&sim->output_lock);
+		return (1);
+	}
+	if (pthread_cond_init(&sim->state_cond, NULL) != 0)
+	{
+		pthread_mutex_destroy(&sim->output_lock);
+		pthread_mutex_destroy(&sim->state_lock);
+		return (1);
+	}
 	return (0);
 }
 
 /* Initialize coder fields and assign their left/right dongles.
-   Also initializes each dongle's state and mutex. */
+   Also initializes each dongle's state tracking. */
 static void	init_coders(t_sim *sim)
 {
 	int	i;
@@ -66,17 +74,11 @@ static void	init_coders(t_sim *sim)
 		sim->coders[i].sim = sim;
 		sim->coders[i].left = &sim->dongles[i];
 		sim->coders[i].right = &sim->dongles[(i + 1) % sim->number_of_coders];
-		sim->coders[i].last_compile_start = sim->sim_start_time;
+		sim->coders[i].last_compile_start = 0;
 		sim->coders[i].request_time = 0;
 		sim->coders[i].in_queue = 0;
 		sim->dongles[i].status = 0;
 		sim->dongles[i].release_time = 0;
-		i++;
-	}
-	i = 0;
-	while (i < sim->number_of_coders)
-	{
-		pthread_mutex_init(&sim->dongles[i].lock, NULL);
 		i++;
 	}
 }
@@ -85,6 +87,8 @@ static void	init_coders(t_sim *sim)
    links. */
 int	setup_simulation(t_sim *sim)
 {
+	int	i;
+
 	sim->dongles = malloc(sizeof(t_dongle) * sim->number_of_coders);
 	if (!sim->dongles)
 		return (1);
@@ -94,15 +98,11 @@ int	setup_simulation(t_sim *sim)
 	if (!heap_init(&sim->wait_queue, sim->number_of_coders, sim->scheduler))
 		return (free(sim->dongles), free(sim->coders), 1);
 	sim->stop = 0;
+	i = 0;
+	while (i < sim->number_of_coders)
+		pthread_mutex_init(&sim->dongles[i++].lock, NULL);
 	if (init_mutexes(sim) != 0)
-	{
-		heap_free(&sim->wait_queue);
-		free(sim->dongles);
-		free(sim->coders);
-		return (1);
-	}
-	sim->sim_start_time = get_time_ms();
-	sim->first_request_time = sim->sim_start_time;
+		return (destroy_simulation(sim), 1);
 	init_coders(sim);
 	return (0);
 }
