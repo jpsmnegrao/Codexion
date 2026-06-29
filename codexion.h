@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/26 17:28:27 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/29 19:15:39 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@ typedef struct s_dongle
 {
 	int				status;
 	long long		release_time;
-	pthread_mutex_t	lock;
 }	t_dongle;
 
 /* Global simulation context.
@@ -68,7 +67,6 @@ typedef struct s_sim
 	int					stop;
 	pthread_mutex_t		output_lock;
 	pthread_mutex_t		state_lock;
-	pthread_cond_t		state_cond;
 	t_coder				*coders;
 	t_dongle			*dongles;
 	t_heap_container	wait_queue;

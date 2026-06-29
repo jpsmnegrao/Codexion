@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 22:09:37 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/26 17:59:04 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/06/29 19:03:10 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,17 +24,8 @@ long long	get_time_ms(void)
 /* Release all resources owned by the simulation. */
 void	destroy_simulation(t_sim *sim)
 {
-	int	i;
-
-	i = 0;
 	pthread_mutex_destroy(&sim->output_lock);
 	pthread_mutex_destroy(&sim->state_lock);
-	pthread_cond_destroy(&sim->state_cond);
-	while (i < sim->number_of_coders)
-	{
-		pthread_mutex_destroy(&sim->dongles[i].lock);
-		i++;
-	}
 	heap_free(&sim->wait_queue);
 	free(sim->dongles);
 	free(sim->coders);
@@ -49,12 +40,6 @@ static int	init_mutexes(t_sim *sim)
 	if (pthread_mutex_init(&sim->state_lock, NULL) != 0)
 	{
 		pthread_mutex_destroy(&sim->output_lock);
-		return (1);
-	}
-	if (pthread_cond_init(&sim->state_cond, NULL) != 0)
-	{
-		pthread_mutex_destroy(&sim->output_lock);
-		pthread_mutex_destroy(&sim->state_lock);
 		return (1);
 	}
 	return (0);
@@ -87,8 +72,6 @@ static void	init_coders(t_sim *sim)
    links. */
 int	setup_simulation(t_sim *sim)
 {
-	int	i;
-
 	sim->dongles = malloc(sizeof(t_dongle) * sim->number_of_coders);
 	if (!sim->dongles)
 		return (1);
@@ -98,9 +81,6 @@ int	setup_simulation(t_sim *sim)
 	if (!heap_init(&sim->wait_queue, sim->number_of_coders, sim->scheduler))
 		return (free(sim->dongles), free(sim->coders), 1);
 	sim->stop = 0;
-	i = 0;
-	while (i < sim->number_of_coders)
-		pthread_mutex_init(&sim->dongles[i++].lock, NULL);
 	if (init_mutexes(sim) != 0)
 		return (destroy_simulation(sim), 1);
 	init_coders(sim);
