@@ -39,6 +39,12 @@ run_test() {
     timeout "$TIMEOUT" bash -c "./codexion $1" > "$TMP_OUT" 2>&1
     EXIT=$?
 
+	if grep -qE "([0-9]+ [0-9] (is|has|burned|taken|compiling|debugging|refactoring)){2,}" "$TMP_OUT"; then
+        echo -e "${RED}[FAIL] Interleaved logs detected${RESET}"
+        rm -f "$TMP_OUT"
+        return
+    fi
+
     RAW_OUT=$(cat "$TMP_OUT")
     CLEAN_OUT=$(grep -E "^[0-9]+" "$TMP_OUT")
     rm -f "$TMP_OUT"
@@ -83,6 +89,8 @@ echo -e "\n${YELLOW}--- INPUT VALIDATION ---${RESET}"
 run_test "" "error" "No arguments"
 run_test "5 800 200 100 100 5 50" "error" "Too few arguments"
 run_test "5 800 200 100 100 5 50 fifo extra" "error" "Too many arguments"
+run_test "1 3000 100 100 100 5 50 fifo" "burnout" "Single coder deadlock/burnout"
+run_test "  3  800 200 100 100 5 50 fifo " "complete" "Whitespace parsing"
 run_test "0 800 200 100 100 5 50 fifo" "error" "Zero coders"
 run_test "0 800 200 100 100 5 0 fifo" "error" "Zero compilations"
 run_test "-5 800 200 100 100 5 50 fifo" "error" "Negative coders"
@@ -94,7 +102,9 @@ run_test "99999999999 800 200 100 100 5 50 fifo" "error" "Overflow"
 run_test "5 800 200 100 100 -1 50 fifo" "error" "Negative compile count"
 run_test "5 800 200 100 100 5 -50 fifo" "error" "Negative cooldown"
 
-echo -e "\n${YELLOW}--- BASIC COMPLETION ---${RESET}"
+echo -e "\n${YELLOW}--- BASIC COMPLETION & BURNOUT ---${RESET}"
+run_test "2 200 100 100 100 1 50 edf" "burnout" "Timing-induced burnout"
+run_test "2 400 100 100 100 1 50 edf" "complete" "Two coders completion"
 run_test "3 3000 100 100 100 3 50 fifo" "complete" "Basic fifo completion"
 run_test "3 3000 100 100 100 3 50 edf" "complete" "Basic edf completion"
 run_test "2 3000 200 100 100 5 50 fifo" "complete" "Two coders completion"
@@ -135,11 +145,12 @@ run_test "3 300 200 50 50 2 10 edf" "burnout" "EDF deadline inversion" "10"
 # Monitor responsiveness (long compile burnout)
 run_test "3 150 500 100 100 5 50 fifo" "burnout" "Long compile burnout" "10"
 
-echo -e "\n${YELLOW}--- PARALLEL DONGLE USAGE (manual check) ---${RESET}"
+echo -e "\n${YELLOW}--- LOGIC VERIFICATION ---${RESET}"
+run_test "2 200 100 100 100 1 50 edf" "burnout" "EDF Tie-breaker validation"
 
+echo -e "\n${YELLOW}--- PARALLEL DONGLE USAGE ---${RESET}"
 TEST_RUN_FIFO=$(./codexion 6 5000 100 50 50 3 50 fifo | grep "is compiling")
 TEST_RUN_EDF=$(./codexion 6 5000 100 50 50 3 50 edf | grep "is compiling")
-
 TIMESTAMPS=$(echo -e "$TEST_RUN_FIFO\n$TEST_RUN_EDF" | awk '{print $1}' | uniq -d)
 
 if [ -n "$TIMESTAMPS" ]; then
@@ -147,16 +158,3 @@ if [ -n "$TIMESTAMPS" ]; then
 else
     echo -e "${RED}[FAIL] Serialized Access Detected${RESET}"
 fi
-
-echo "These cases use enough coders that some can compile independently
-(non-adjacent coders share no dongles). Inspect the "is compiling"
-lines below: if the fix is correct, you should see different coder
-IDs starting to compile at the same or very close timestamps,
-confirming that multiple non-conflicting dongle pairs can be used
-at the same time instead of serializing all access."
-
-echo "Checking 6 coders/3 compiles fifo:"
-echo "$TEST_RUN_FIFO"
-echo ""
-echo "Checking 6 coders/3 compiles edf:"
-echo "$TEST_RUN_EDF"
