@@ -6,7 +6,7 @@
 /*   By: jpaim-so <jpaim-so@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/23 17:49:51 by jpaim-so          #+#    #+#             */
-/*   Updated: 2026/06/29 19:15:39 by jpaim-so         ###   ########.fr       */
+/*   Updated: 2026/07/01 19:33:27 by jpaim-so         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@
 typedef struct s_coder			t_coder;
 
 /* Entry stored in the waiting queue heap.
-   Holds the coder, its priority value, and a deterministic tie-breaker. */
+   Holds the coder, its priority tie-breaker values. */
 typedef struct s_heap_entry
 {
 	t_coder		*coder;
