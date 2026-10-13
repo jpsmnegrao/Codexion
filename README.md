@@ -58,19 +58,43 @@ Recompile:
 
 `make re`
 
-### Testing / Debugging
+### Testing
 
-The Makefile includes a lint rule that runs:
+#### Scenario Tests
 
-- Norminette check;
-- Valgrind memory leak checks;
-- Helgrind thread-safety checks.
+The codexion_tester.sh script runs predefined scenarios and checks the
+program's output against expected behavior defined by the project
+specifications.
 
-Run:
+Run it after compiling the project:
+
+`./codexion_tester.sh`
+
+The scenarios cover:
+- Input validation: missing or extra arguments, invalid values, and integer
+  overflow.
+- Simulation behavior: successful completion, burnout detection, and timing
+  boundaries.
+- Scheduling and resource management: FIFO and EDF policies, dongle cooldowns,
+  contention, and fairness.
+- Concurrency: parallel compilation, log serialization, and resource-allocation
+  edge cases.
+- Thread safety: selected scenarios run under Helgrind to check for data races
+  and lock-order violations.
+
+Each scenario reports [OK] or [FAIL] according to its expected outcome.
+
+#### Code Quality and Memory Checks
+
+The Makefile provides a lint target that runs Norminette, Valgrind, and Helgrind:
 
 `make lint`
 
-This can be used to verify code style, memory management, and possible threading issues.
+Norminette checks compliance with the 42 coding standard.
+
+Valgrind checks for memory leaks and memory errors.
+
+Helgrind checks for threading issues.
 
 ## Resources
 
